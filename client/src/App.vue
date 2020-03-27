@@ -2,7 +2,12 @@
   <div id="app">
     <h1>Welcome</h1>
     <div class="loginContainer">
-      <div>
+      <div v-if="authentication === 'Unauthenticated'">
+        <input type="text" placeholder="username" v-model="username" />
+        <input type="text" placeholder="password" v-model="password" />
+        <button @click="login">Login</button>
+      </div>
+      <div v-else>
         Hello, {{ authentication.username }}
         <button @click="logout">Logout</button>
       </div>
@@ -13,7 +18,6 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import base64 from "base-64";
-import queryString from "query-string";
 
 interface Authenticated {
   accessToken: string;
@@ -29,32 +33,18 @@ export default class App extends Vue {
   authentication: Authentication = "Unauthenticated";
 
   async created() {
-    if (window.location.pathname === "/return") {
-      const code = queryString.parse(window.location.search).code;
-      if (typeof code === "string") {
-        this.login(code);
-        window.history.pushState("", "", "/");
-      } else {
-        window.location.href =
-          "/oauth/authorize?grant_type=authorization_code&response_type=code&client_id=client";
-      }
-    } else {
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken !== null) {
-        this.authentication = {
-          accessToken,
-          username: await this.getUsername(accessToken)
-        };
-      } else {
-        window.location.href =
-          "/oauth/authorize?grant_type=authorization_code&response_type=code&client_id=client";
-      }
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken !== null) {
+      this.authentication = {
+        accessToken,
+        username: await this.getUsername(accessToken)
+      };
     }
   }
 
-  async login(code: string) {
+  async login() {
     const accessToken = await fetch(
-      `/oauth/token?grant_type=authorization_code&client_id=client&code=${code}`,
+      `/oauth/token?grant_type=password&username=${this.username}&password=${this.password}`,
       {
         method: "POST",
         headers: new Headers({
@@ -76,7 +66,6 @@ export default class App extends Vue {
   logout() {
     this.authentication = "Unauthenticated";
     localStorage.removeItem("accessToken");
-    window.location.href = "/logout";
   }
 
   private async getUsername(accessToken: string) {

@@ -78,10 +78,8 @@ class AuthServer extends AuthorizationServerConfigurerAdapter {
                 .inMemory()
                 .withClient("client")
                 .secret(passwordEncoder.encode("secret"))
-                .authorizedGrantTypes("authorization_code")
-                .scopes("read")
-                .autoApprove(true)
-                .redirectUris("http://localhost:8081/return");
+                .authorizedGrantTypes("password")
+                .scopes("user_info");
     }
 
     @Bean
@@ -138,7 +136,7 @@ class WebSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .requestMatchers()
-                .antMatchers("/login", "/oauth/authorize", "/api/public")
+                .antMatchers("/user-info", "/login", "/oauth/authorize", "/api/public")
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/public").permitAll()
