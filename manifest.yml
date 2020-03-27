@@ -1,0 +1,23 @@
+applications:
+- name: client
+  path: client/dist
+  disk_quota: 64m
+  memory: 64m
+  stack: cflinuxfs3
+  instances: 2
+  buildpacks:
+  - staticfile_buildpack
+  routes:
+    - route: oauth2-demo.cfapps.io
+- name: api
+  path: api/build/libs/api-0.0.1-SNAPSHOT.jar
+  disk_quota: 1G
+  memory: 1G
+  stack: cflinuxfs3
+  instances: 2
+  buildpacks:
+  - java_buildpack
+  routes:
+    - route: oauth2-demo.cfapps.io/oauth
+  env:
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
