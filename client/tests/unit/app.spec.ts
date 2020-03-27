@@ -4,6 +4,6 @@ import App from "@/App.vue";
 describe("App", () => {
   it("should show Login page", () => {
     const wrapper = shallowMount(App);
-    expect(wrapper.text()).toMatch("Login");
+    expect(wrapper.text()).toMatch("Welcome");
   });
 });
