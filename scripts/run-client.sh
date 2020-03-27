@@ -4,6 +4,6 @@ set -euxo pipefail
 
 cd "$(dirname "$0")"
 
-cd ../api
+cd ../client
 
-./gradlew clean bootrun
+yarn run serve
