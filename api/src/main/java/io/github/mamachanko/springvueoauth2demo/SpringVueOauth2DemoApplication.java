@@ -36,6 +36,7 @@ public class SpringVueOauth2DemoApplication {
 
 }
 
+@SuppressWarnings("deprecation")
 @EnableResourceServer
 @Configuration
 class ResourceServerConfig {
@@ -50,8 +51,9 @@ class PasswordConfig {
     }
 }
 
-@Configuration
+@SuppressWarnings("deprecation")
 @EnableAuthorizationServer
+@Configuration
 class AuthServer extends AuthorizationServerConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
@@ -94,6 +96,7 @@ class AuthServer extends AuthorizationServerConfigurerAdapter {
 
     @Bean
     @Primary
+    @SuppressWarnings("unchecked")
     public DefaultTokenServices tokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());

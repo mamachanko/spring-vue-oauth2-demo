@@ -1,6 +1,8 @@
 ## Todos
- * [ ] bootstrap client
- * [ ] simple client-side login page
+ * [x] bootstrap client
+ * [x] simple client-side login page
+ * [ ] migrate to router and store
+ * [ ] look into how to be safer
  * [ ] login from client
  * [ ] logout from client
  * [ ] test access token retrieval from API
