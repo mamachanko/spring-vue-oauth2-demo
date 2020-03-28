@@ -1,15 +1,12 @@
-package io.github.mamachanko.springvueoauth2demo;
+package io.github.mamachanko.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +14,7 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -26,20 +24,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Map;
 
 @SpringBootApplication
-public class SpringVueOauth2DemoApplication {
+public class ApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringVueOauth2DemoApplication.class, args);
+        SpringApplication.run(ApiApplication.class, args);
     }
 
-}
-
-@SuppressWarnings("deprecation")
-@EnableResourceServer
-@Configuration
-class ResourceServerConfig {
 }
 
 @Configuration
@@ -49,19 +43,28 @@ class PasswordConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }
 
-@SuppressWarnings("deprecation")
 @EnableAuthorizationServer
 @Configuration
-class AuthServer extends AuthorizationServerConfigurerAdapter {
+class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    public AuthServer(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    AuthorizationServerConfig(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+    }
+
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.inMemory()
+                .withClient("client")
+                .secret(passwordEncoder.encode("secret"))
+                .authorizedGrantTypes("password")
+                .scopes("read");
     }
 
     @Override
@@ -72,14 +75,11 @@ class AuthServer extends AuthorizationServerConfigurerAdapter {
                 .accessTokenConverter(accessTokenConverter());
     }
 
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients
-                .inMemory()
-                .withClient("client")
-                .secret(passwordEncoder.encode("secret"))
-                .authorizedGrantTypes("password")
-                .scopes("user_info");
+    @Bean
+    public DefaultTokenServices tokenServices() {
+        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore(tokenStore());
+        return defaultTokenServices;
     }
 
     @Bean
@@ -94,33 +94,34 @@ class AuthServer extends AuthorizationServerConfigurerAdapter {
         return converter;
     }
 
-    @Bean
-    @Primary
-    @SuppressWarnings("unchecked")
-    public DefaultTokenServices tokenServices() {
-        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore(tokenStore());
-        defaultTokenServices.setSupportRefreshToken(true);
-        return defaultTokenServices;
-    }
+}
 
+@EnableResourceServer
+@Configuration
+class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/general-info").permitAll()
+                .anyRequest().authenticated();
+
+    }
 }
 
 @Configuration
-@EnableWebSecurity
-@Order(1)
-class WebSecurity extends WebSecurityConfigurerAdapter {
+class UserConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
-    public WebSecurity(PasswordEncoder passwordEncoder) {
+    UserConfig(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .inMemoryAuthentication()
+        auth.inMemoryAuthentication()
                 .withUser("user")
                 .password(passwordEncoder.encode("password"))
                 .roles("USER");
@@ -132,36 +133,19 @@ class WebSecurity extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .requestMatchers()
-                .antMatchers("/user-info", "/login", "/oauth/authorize", "/api/public")
-                .and()
-                .authorizeRequests()
-                .antMatchers("/api/public").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .formLogin().permitAll();
-    }
 }
 
 @RestController
-class ApiController {
+class UserController {
 
-    @GetMapping("/api/me")
-    public Principal getUserInfo(Principal principal) {
-        return principal;
+    @GetMapping("/user-info")
+    public Map<String, Object> getUserInfo(Principal principal) {
+        return Collections.singletonMap("you are", principal);
     }
 
-    @GetMapping("/api/private")
-    public String getPrivate() {
-        return "this is private";
-    }
-
-    @GetMapping("/api/public")
-    public String getPublic() {
-        return "this is for everyone";
+    @GetMapping("/general-info")
+    public Map<String, Object> getGeneralInfo() {
+        return Collections.singletonMap("this is", "public");
     }
 
 }

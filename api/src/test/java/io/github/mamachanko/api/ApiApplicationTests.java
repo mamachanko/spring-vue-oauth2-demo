@@ -1,10 +1,10 @@
-package io.github.mamachanko.springvueoauth2demo;
+package io.github.mamachanko.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringVueOauth2DemoApplicationTests {
+class ApiApplicationTests {
 
 	@Test
 	void contextLoads() {
