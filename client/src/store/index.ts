@@ -42,7 +42,6 @@ export default new Vuex.Store({
       commit("logout");
     }
   },
-  modules: {},
   getters: {
     isAuthenticated: state => !!state.token
   }
