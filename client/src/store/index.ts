@@ -2,7 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
 import router from "@/router";
-
+import querystring from 'query-string';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -21,15 +21,10 @@ export default new Vuex.Store({
     login({ commit }, { username, password }) {
       axios
         .post(
-          `/oauth/token?grant_type=password&username=${username}&password=${password}`,
-          {},
-          {
-            auth: {
-              username: "client",
-              password: "secret"
-            }
-          }
-        )
+            '/oauth/token',
+            querystring.stringify({'grant_type': 'password', 'client_id': 'client', username, password}),
+            {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+            )
         .then(response => response.data.access_token)
         .then(token => {
           localStorage.setItem("token", token);
