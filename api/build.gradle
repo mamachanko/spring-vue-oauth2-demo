@@ -20,6 +20,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.2.5.RELEASE'
 	implementation 'org.springframework:spring-tx:5.2.5.RELEASE'
+	compile("org.springframework.ldap:spring-ldap-core")
+	compile("org.springframework.security:spring-security-ldap")
+//	compile("org.springframework:spring-tx")
+	compile("com.unboundid:unboundid-ldapsdk")
+
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

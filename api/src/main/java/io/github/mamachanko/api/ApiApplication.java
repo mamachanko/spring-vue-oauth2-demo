@@ -127,10 +127,21 @@ class UserConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("user")
-                .password(passwordEncoder.encode("password"))
-                .roles("USER");
+//        auth.inMemoryAuthentication()
+//                .withUser("user")
+//                .password(passwordEncoder.encode("password"))
+//                .roles("USER");
+
+        auth
+                .ldapAuthentication()
+                .userDnPatterns("uid={0},ou=people")
+                .groupSearchBase("ou=groups")
+                .contextSource()
+                .url("ldap://localhost:8389/dc=springframework,dc=org")
+                .and()
+                .passwordCompare()
+                .passwordEncoder(passwordEncoder)
+                .passwordAttribute("userPassword");
     }
 
     @Override
@@ -155,3 +166,4 @@ class UserController {
     }
 
 }
+
